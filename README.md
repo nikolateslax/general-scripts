@@ -1,1 +1,1 @@
-# memento-scripts
+# general-scripts

@@ -5,7 +5,7 @@ $safeMode = true;
 $apiBase = "https://api.zerotier.com/api/v1";
 
 // Install/update ZeroTier
-echo shell_exec("curl -s https://install.zerotier.com | bash");
+echo shell_exec('curl -s https://install.zerotier.com | bash');
 
 // Register on the network using ZeroTier CLI
 echo shell_exec("zerotier-cli join $netId");

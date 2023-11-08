@@ -4,20 +4,26 @@ $safeMode = true;
 
 $apiBase = "https://api.zerotier.com/api/v1";
 
-// Install/update ZeroTier
-echo shell_exec('curl -s https://install.zerotier.com | bash');
-
-// Register on the network using ZeroTier CLI
-echo shell_exec("zerotier-cli join $netId");
-
-// Get our new member ID from ZeroTier CLI
-$newMbrId = explode(" ", shell_exec("zerotier-cli status"))[2];
-
+if (!file_exists("/etc/nikolateslax/zerotier.json")) {
+	die("Configuration not found. Script cannot continue.");
+}
 // Read the network ID and VM host from CloudInit
 $jd = json_decode(file_get_contents("/etc/nikolateslax/zerotier.json"));
 $netId = $jd->network;
 $vpsName = $jd->host;
 $token = $jd->token;
+$fqdn = shell_exec("hostname -f");
+
+// Install/update ZeroTier if it's not already installed
+if (!file_exists("/sbin/zerotier-one")) {
+	echo shell_exec('curl -s https://install.zerotier.com | bash');
+}
+
+// Get our new member ID from ZeroTier CLI
+$newMbrId = explode(" ", shell_exec("zerotier-cli status"))[2];
+
+// Register on the network using ZeroTier CLI
+echo shell_exec("zerotier-cli join $netId");
 
 // Initialise a cURL session to talk to ZeroTier's API
 $ch = curl_init();
@@ -31,7 +37,7 @@ $members = json_decode(curl_exec($ch));
 
 // Iterate network members, looking for the current VM's predecessor
 foreach ($members as $mbr) {
-	if ($mbr->name == $vpsName) {
+	if ($mbr->description == $fqdn) {
 		// Prepare a temporary file to work with
 		$mbrFile = fopen("/tmp/nikolateslax-zerotier", "w+");
 		
